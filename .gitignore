@@ -1,0 +1,8 @@
+train/mnist_data/
+__pycache__/
+*.pyc
+.venv/
+venv/
+Thumbs.db
+desktop.ini
+.DS_Store

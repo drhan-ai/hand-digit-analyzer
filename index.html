@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watch Deep Learning Think | Computer Science &mdash; Middle Georgia State University</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="utility-bar">
+        <span>School of Computing</span>
+        <span>Middle Georgia State University</span>
+    </div>
+
+    <header>
+        <div class="logo">
+            <img src="img/mga-logo.png" alt="Middle Georgia State University" class="mga-logo">
+            <div class="logo-divider"></div>
+            <div>
+                <p class="unit">Computer Science</p>
+                <h1>Watch Deep Learning Think</h1>
+                <p class="subtitle">Draw a number. Two hidden layers of neurons argue about it, live.</p>
+            </div>
+        </div>
+        <div class="header-stats">
+            <div class="stat-badge">
+                <span class="stat-label">Architecture</span>
+                <span class="stat-value">784 &rarr; 32 &rarr; 32 &rarr; 10</span>
+            </div>
+            <div class="stat-badge">
+                <span class="stat-label">Test accuracy</span>
+                <span class="stat-value">97.1%</span>
+            </div>
+            <div class="stat-badge">
+                <span class="stat-label">Runs on</span>
+                <span class="stat-value">Your browser</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="panel-left">
+            <section class="drawing-section">
+                <h2 class="section-title">Draw a Digit</h2>
+                <canvas id="drawing-canvas"></canvas>
+                <div class="drawing-controls">
+                    <button class="btn btn-clear" id="btn-clear">Clear</button>
+                    <div class="brush-size">
+                        <span class="stat-label">Brush</span>
+                        <input type="range" id="brush-size" min="1" max="3" value="2" step="0.5">
+                    </div>
+                </div>
+            </section>
+
+            <section class="knights-card">
+                <img src="img/mga-knights.png" alt="MGA Knights" class="knights">
+                <div>
+                    <p class="knights-title">No server. No cloud. No account.</p>
+                    <p class="knights-line">Every prediction is 26,000 multiplications happening on this
+                    machine. Nothing you draw ever leaves the page.</p>
+                </div>
+            </section>
+        </div>
+
+        <div class="panel-right">
+            <section class="output-section">
+                <h2 class="section-title">What the Network Thinks</h2>
+                <div class="output-grid" id="output-grid">
+                    <div class="output-card" data-digit="0">
+                        <span class="digit-label">0</span>
+                        <div class="confidence-bar"><div class="confidence-fill"></div></div>
+                        <span class="confidence-value">0%</span>
+                    </div>
+                    <div class="output-card" data-digit="1">
+                        <span class="digit-label">1</span>
+                        <div class="confidence-bar"><div class="confidence-fill"></div></div>
+                        <span class="confidence-value">0%</span>
+                    </div>
+                    <div class="output-card" data-digit="2">
+                        <span class="digit-label">2</span>
+                        <div class="confidence-bar"><div class="confidence-fill"></div></div>
+                        <span class="confidence-value">0%</span>
+                    </div>
+                    <div class="output-card" data-digit="3">
+                        <span class="digit-label">3</span>
+                        <div class="confidence-bar"><div class="confidence-fill"></div></div>
+                        <span class="confidence-value">0%</span>
+                    </div>
+                    <div class="output-card" data-digit="4">
+                        <span class="digit-label">4</span>
+                        <div class="confidence-bar"><div class="confidence-fill"></div></div>
+                        <span class="confidence-value">0%</span>
+                    </div>
+                    <div class="output-card" data-digit="5">
+                        <span class="digit-label">5</span>
+                        <div class="confidence-bar"><div class="confidence-fill"></div></div>
+                        <span class="confidence-value">0%</span>
+                    </div>
+                    <div class="output-card" data-digit="6">
+                        <span class="digit-label">6</span>
+                        <div class="confidence-bar"><div class="confidence-fill"></div></div>
+                        <span class="confidence-value">0%</span>
+                    </div>
+                    <div class="output-card" data-digit="7">
+                        <span class="digit-label">7</span>
+                        <div class="confidence-bar"><div class="confidence-fill"></div></div>
+                        <span class="confidence-value">0%</span>
+                    </div>
+                    <div class="output-card" data-digit="8">
+                        <span class="digit-label">8</span>
+                        <div class="confidence-bar"><div class="confidence-fill"></div></div>
+                        <span class="confidence-value">0%</span>
+                    </div>
+                    <div class="output-card" data-digit="9">
+                        <span class="digit-label">9</span>
+                        <div class="confidence-bar"><div class="confidence-fill"></div></div>
+                        <span class="confidence-value">0%</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="visualization-section">
+                <h2 class="section-title">Inside the Network</h2>
+                <div class="viz-container">
+                    <canvas id="network-canvas"></canvas>
+                </div>
+                <div class="legend">
+                    <span><i class="swatch dot"></i> A neuron firing</span>
+                    <span><i class="swatch pos"></i> Votes for the answer</span>
+                    <span><i class="swatch neg"></i> Votes against it</span>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer>
+        <p class="unit-line">Computer Science &middot; Middle Georgia State University</p>
+        <p class="attrib">Based on <a href="https://github.com/williankeller/neural-network-numbers" target="_blank" rel="noopener">How AI Sees Numbers</a> by Willian Keller. Rebuilt with a three-layer network and retrained on MNIST for the Computer Science program, Middle Georgia State University.</p>
+    </footer>
+
+    <script src="data/weights.js"></script>
+    <script src="js/network.js"></script>
+    <script src="js/canvas.js"></script>
+    <script src="js/visualizer.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
