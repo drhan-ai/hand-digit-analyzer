@@ -520,14 +520,15 @@ body.stage-draw #drawing-canvas {
     image-rendering: pixelated;
 }
 
-/* The button row spans the canvas, so Clear starts level with the square's
-   left edge. */
+/* The button row is exactly as wide as the canvas and the two buttons split
+   it, so the row ends level with the square on both sides. */
 body.stage-draw .drawing-controls {
     width: var(--draw-size);
     margin-top: 0;
-    flex-wrap: wrap;
-    align-items: flex-start;
+    align-items: stretch;
 }
+
+body.stage-draw .drawing-controls .btn { flex: 1; }
 
 body.stage-draw .section-title {
     color: var(--mga-purple-light);
