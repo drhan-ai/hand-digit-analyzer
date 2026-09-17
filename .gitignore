@@ -10,3 +10,6 @@ desktop.ini
 # local-only: reference snippets and editor/tool config
 face/
 .claude/
+
+# learning notes, local only
+zDoc/

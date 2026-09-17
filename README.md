@@ -31,7 +31,14 @@ separation. It appears only inside the graphic.
 ## Logos
 
 `img/mga-logo.png` — institutional logo, trimmed with the white background
-knocked out. It is the only logo the page uses.
+knocked out. It is the only logo the page uses. It links to mga.edu, as the
+brand guide requires.
+
+`img/logo.svg` — **placeholder, not an official mark.** A stand-in for a
+School of Computing sub-brand logo while the real one is being made. Nothing
+references it yet. Sub-brand logos are made by University Marketing and
+Communications (marketing@mga.edu) and approved by the School leader, so
+replace this file with the official one before the page goes anywhere public.
 
 The MGA Knights athletics shield was removed. Athletics marks need
 separate approval from the Athletics Department, so the page does not
