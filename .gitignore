@@ -6,3 +6,7 @@ venv/
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# local-only: reference snippets and editor/tool config
+face/
+.claude/

@@ -33,6 +33,9 @@
     --text-primary: #1E1A2E;
     --text-secondary: #5C5470;
     --text-muted: #8C85A0;
+
+    /* One font for the whole project. The landing screen reads this too. */
+    --font-sans: 'Montserrat', sans-serif;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -322,12 +325,6 @@ section {
     border-left: 4px solid var(--mga-purple);
 }
 
-.knights {
-    height: 66px;
-    width: auto;
-    flex: none;
-}
-
 .knights-title {
     font-size: 0.86rem;
     font-weight: 700;
@@ -378,3 +375,83 @@ footer {
 /* Event display: uncomment to scale the whole page up on a large screen.
 html { font-size: 20px; }
 */
+
+/* ===================================================================
+   LANDING SCREEN
+   -------------------------------------------------------------------
+   The face a visitor meets before they draw. A black layer over the
+   whole page; it fades away on a tap and comes back after the demo
+   has sat untouched for a while.
+
+   COLORS are here. TIMINGS are not — they live in the SETTINGS block
+   at the top of js/face.js, including how long the demo waits before
+   the face returns.
+
+   Everything below is scoped to .face-landing so none of it can leak
+   into the demo underneath.
+   =================================================================== */
+
+.face-landing {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+
+    background: #000;          /* landing background */
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+    touch-action: none;
+    outline: none;
+
+    /* --face-fade is set by js/face.js from SETTINGS.FADE_MS */
+    transition: opacity var(--face-fade, 450ms) ease;
+}
+
+.face-landing.is-leaving { opacity: 0; }
+.face-landing.is-hidden  { display: none; }
+
+/* viewBox is 1024x600, so tall screens letterbox — invisibly, the
+   page behind the letterbox is the same black. */
+.face-landing svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.face-landing .eye {
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+.face-landing .happy { display: none; }
+.face-landing .isHappy .eye { display: none; }
+.face-landing .isHappy .happy { display: inline; }
+
+.face-landing .woof { opacity: 0; transition: opacity .2s; }
+.face-landing .isHappy .woof { opacity: 1; }
+
+@media (prefers-reduced-motion: no-preference) {
+    .face-landing .eye { animation: face-blink 4s infinite; }
+    @keyframes face-blink {
+        0%, 92%, 100% { transform: scaleY(1); }
+        95%           { transform: scaleY(.06); }
+    }
+
+    .face-landing .tilt {
+        transform-box: view-box;
+        transform-origin: 512px 320px;
+        animation: face-tilt 5s ease-in-out infinite;
+    }
+    @keyframes face-tilt {
+        0%, 100% { transform: rotate(-2.5deg); }
+        50%      { transform: rotate(2.5deg); }
+    }
+
+    .face-landing .isHappy .face { animation: face-hop .35s ease-in-out 3; }
+    @keyframes face-hop {
+        50% { transform: translateY(-14px); }
+    }
+}
