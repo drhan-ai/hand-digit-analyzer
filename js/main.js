@@ -20,6 +20,14 @@
     const sectionTitle = document.querySelector('.drawing-section .section-title');
     const TITLE_DRAW = sectionTitle.textContent;
 
+    // The heading doubles as the status line: normally it names the task,
+    // and during the check it names the step being carried out — in yellow,
+    // so it reads as something happening rather than a label.
+    function setTitle(text, isStep = false) {
+        sectionTitle.textContent = text;
+        sectionTitle.classList.toggle('is-stage', isStep);
+    }
+
     // STAGES. 'draw' is one big canvas on black; 'result' is the normal
     // page. What each looks like is entirely in style.css — this only
     // says which one is on. Nothing in the HTML moves between them.
@@ -135,12 +143,12 @@
 
         const { stageRaw, stageCentered, stageBlurred, shiftX, shiftY } = drawingCanvas;
 
-        sectionTitle.textContent = 'Centering…';
+        setTitle('Centering…', true);
         await over(SETTINGS.CENTER_MS, (t) => {
             drawingCanvas.renderStage(stageRaw, shiftX * t, shiftY * t);
         });
 
-        sectionTitle.textContent = 'Smoothing…';
+        setTitle('Smoothing…', true);
         const mixed = new Float32Array(784);
         await over(SETTINGS.SMOOTH_MS, (t) => {
             for (let i = 0; i < 784; i++) {
@@ -149,7 +157,7 @@
             drawingCanvas.renderStage(mixed);
         });
 
-        sectionTitle.textContent = TITLE_DRAW;
+        setTitle(TITLE_DRAW);
 
         // the answer must not be sitting there before the network gets to it
         resetOutputDisplay();
@@ -187,7 +195,7 @@
     // the way back to the big canvas, so a visitor can try another digit.
     btnClear.addEventListener('click', () => {
         resetAll();
-        sectionTitle.textContent = TITLE_DRAW;
+        setTitle(TITLE_DRAW);
         setStage('draw');
         touched();
     });
@@ -216,7 +224,7 @@
         if (SETTINGS.IDLE_RETURN_MS > 0 && !landing.isVisible &&
             performance.now() - lastInteraction > SETTINGS.IDLE_RETURN_MS) {
             resetAll();              // next visitor should not see the last drawing
-            sectionTitle.textContent = TITLE_DRAW;
+            setTitle(TITLE_DRAW);
             setStage('draw');        // ... and starts where the last one did
             landing.show();
         }

@@ -40,6 +40,11 @@
     /* MGA purple is too dark to read on black (2.4:1). Same hue,
        lifted for the drawing stage's black background (8.6:1). */
     --mga-purple-light: #B49BD9;
+
+    /* Not a brand colour, like --accent-warm: it marks the moments the page
+       is working on the drawing rather than waiting for one, and has to cut
+       away from the purple around it to do that. */
+    --stage-label: #F2C94C;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -534,6 +539,9 @@ body.stage-draw .section-title {
     color: var(--mga-purple-light);
     margin-bottom: 0;
 }
+
+/* worn only while the heading names a step being carried out */
+body.stage-draw .section-title.is-stage { color: var(--stage-label); }
 
 /* drawing is locked while the page is working through a stage */
 body.is-busy #drawing-canvas { pointer-events: none; }
