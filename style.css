@@ -83,13 +83,19 @@ header {
     padding: 22px 30px;
     background: var(--bg-card);
     border-bottom: 1px solid var(--border-color);
-    flex-wrap: wrap;
+
+    /* One row: the badges belong at the far right, across from the title,
+       not stacked underneath it. Below 900px they do go under — see the
+       media query — because three of them and a title will not fit on a
+       phone without a sideways scroll. */
+    flex-wrap: nowrap;
 }
 
 .logo {
     display: flex;
     align-items: center;
     gap: 20px;
+    min-width: 0;      /* a flex item will not shrink past its text otherwise */
 }
 
 .mga-logo {
@@ -129,7 +135,7 @@ h1 {
     margin-top: 5px;
 }
 
-.header-stats { display: flex; gap: 10px; }
+.header-stats { display: flex; gap: 10px; flex: none; }
 
 .stat-badge {
     background: var(--bg-sunken);
@@ -366,7 +372,7 @@ footer {
 /* ---------- responsive ---------- */
 @media (max-width: 900px) {
     main { grid-template-columns: 1fr; padding: 18px; }
-    header { padding: 18px; }
+    header { padding: 18px; flex-wrap: wrap; }
     .header-stats { width: 100%; }
     .output-grid { grid-template-columns: repeat(5, 1fr); }
     .mga-logo { height: 50px; }
