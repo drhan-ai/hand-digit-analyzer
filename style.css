@@ -538,6 +538,10 @@ body.stage-draw .drawing-controls .btn { flex: 1; }
 body.stage-draw .section-title {
     color: var(--mga-purple-light);
     margin-bottom: 0;
+
+    /* Big enough to read across a room. --draw-size already reserves more
+       height than this needs, so the square does not shrink for it. */
+    font-size: clamp(0.95rem, 2.6vmin, 1.5rem);
 }
 
 /* worn only while the heading names a step being carried out */
