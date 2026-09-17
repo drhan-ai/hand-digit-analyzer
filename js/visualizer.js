@@ -119,7 +119,10 @@ class NetworkVisualizer {
         const pad = 34;
         const y1 = 46;              // hidden 1
         const y2 = h * 0.52;        // hidden 2
-        const y3 = h - 52;          // output
+        // Lifted clear of the bottom: the output row carries its label below
+        // it, where no wires run. 17 for the circle, 8 more when it is the
+        // winner, 3 for the confidence ring, then room for the text.
+        const y3 = h - 62;          // output
 
         const winner = this._winner();
 
@@ -136,7 +139,7 @@ class NetworkVisualizer {
         ctx.textBaseline = 'alphabetic';
         ctx.fillText(`HIDDEN 1  (${this.h1Size} neurons, ReLU)`, pad, y1 - 20);
         ctx.fillText(`HIDDEN 2  (${this.h2Size} neurons, ReLU)`, pad, y2 - 20);
-        ctx.fillText('OUTPUT  (10 digits, Softmax)', pad, y3 - 26);
+        ctx.fillText('OUTPUT  (10 digits, Softmax)', pad, y3 + 42);
     }
 
     _winner() {
