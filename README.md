@@ -23,22 +23,6 @@ Official MGA colors (brand guide):
 | Gray | `#B0B6BB` |
 | Light gray | `#C9CED1` |
 
-Two colors are not from the brand, both because purple could not do the
-job:
-
-`#C2571F`, the warm accent for negative weights in the network graphic.
-Purple alone cannot show both "votes for" and "votes against", and its
-complement gives the clearest separation. It appears only inside the
-graphic.
-
-`#F2C94C`, the yellow the heading turns while the page is centering and
-smoothing a drawing. It has to read as something happening, which means
-cutting away from the purple around it.
-
-A third, `#B49BD9`, is MGA purple lifted for legibility: the brand value
-scores 2.4:1 on the drawing screen's black background, well under the 4.5:1
-that text needs.
-
 ## Logos
 
 `img/mga-logo.png` — institutional logo, trimmed with the white background
