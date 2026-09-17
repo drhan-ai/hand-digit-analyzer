@@ -15,12 +15,26 @@
                    layer starts to fade.
    FADE_MS         Length of the fade-out. Pushed into style.css as
                    --face-fade, so the two can never drift apart.
+
+   Then, after Check digit is pressed, the page walks through what it
+   does to the drawing before the network sees it:
+
+   CENTER_MS       The digit slides to the middle of the grid.
+   SMOOTH_MS       Its edges soften.
+   SETTLE_MS       The big canvas shrinks back into its card.
+   LAYER_MS        Each layer of the network lights up, one after the
+                   next, so three of these pass before the answer.
    =================================================================== */
 
 const SETTINGS = {
     IDLE_RETURN_MS: 30000,   // <-- auto-return delay. This is the number to change.
     SMILE_MS: 1100,
     FADE_MS: 450,
+
+    CENTER_MS: 600,
+    SMOOTH_MS: 400,
+    SETTLE_MS: 600,
+    LAYER_MS: 400,
 };
 
 

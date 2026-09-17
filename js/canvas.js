@@ -119,10 +119,17 @@ class DrawingCanvas {
             }
         }
 
+        // How far the drawing has to travel to sit centred. Kept on the
+        // instance so the move can be animated rather than just applied.
+        this.shiftX = 0;
+        this.shiftY = 0;
+
         if (totalMass > 0) {
             // Shift so center of mass lands at grid center (13.5, 13.5)
             const shiftX = Math.round(13.5 - comX / totalMass);
             const shiftY = Math.round(13.5 - comY / totalMass);
+            this.shiftX = shiftX;
+            this.shiftY = shiftY;
 
             for (let y = 0; y < 28; y++) {
                 for (let x = 0; x < 28; x++) {
@@ -157,6 +164,13 @@ class DrawingCanvas {
                 blurred[y * 28 + x] = sum / kSum;
             }
         }
+
+        // The three states the drawing passes through on its way to the
+        // network. Nothing here needs them, but the page shows them.
+        this.stageRaw = Float32Array.from(this.pixels);
+        this.stageCentered = centered;
+        this.stageBlurred = blurred;
+
         return blurred;
     }
 
@@ -173,6 +187,15 @@ class DrawingCanvas {
     }
 
     render() {
+        this.renderStage(this.pixels);
+    }
+
+    /**
+     * Draw a 784-value grid. offsetX/offsetY slide it by that many cells,
+     * fractions included, while the grid lines stay put — which is what
+     * makes the centring step look like the digit gliding into place.
+     */
+    renderStage(pixels, offsetX = 0, offsetY = 0) {
         const ctx = this.ctx;
         const cs = this.cellSize;
 
@@ -194,9 +217,11 @@ class DrawingCanvas {
         }
 
         // Draw pixels
+        ctx.save();
+        ctx.translate(offsetX * cs, offsetY * cs);
         for (let y = 0; y < 28; y++) {
             for (let x = 0; x < 28; x++) {
-                const v = this.pixels[y * 28 + x];
+                const v = pixels[y * 28 + x];
                 if (v > 0.01) {
                     const brightness = Math.floor(v * 255);
                     ctx.fillStyle = `rgb(${brightness}, ${brightness}, ${brightness})`;
@@ -204,6 +229,7 @@ class DrawingCanvas {
                 }
             }
         }
+        ctx.restore();
     }
 
     setBrushSize(size) {

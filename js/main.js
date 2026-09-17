@@ -17,6 +17,8 @@
     const outputCards = document.getElementById('output-grid').querySelectorAll('.output-card');
     const btnClear = document.getElementById('btn-clear');
     const btnCheck = document.getElementById('btn-check');
+    const sectionTitle = document.querySelector('.drawing-section .section-title');
+    const TITLE_DRAW = sectionTitle.textContent;
 
     // STAGES. 'draw' is one big canvas on black; 'result' is the normal
     // page. What each looks like is entirely in style.css — this only
@@ -63,16 +65,129 @@
         resetOutputDisplay();
     }
 
+    // ----------------------------------------------------------------
+    // What happens after Check digit: the drawing is centred, softened,
+    // carried back into its card, and only then does the network light up
+    // a layer at a time. Every duration below is SETTINGS, in js/face.js.
+    // ----------------------------------------------------------------
+
+    const sleep = (ms) => new Promise((done) => setTimeout(done, ms));
+
+    // run step(t) every frame for ms, with t travelling 0 -> 1
+    function over(ms, step) {
+        return new Promise((done) => {
+            const start = performance.now();
+            (function frame(now) {
+                const t = Math.min(1, (now - start) / ms);
+                step(t);
+                if (t < 1) requestAnimationFrame(frame);
+                else done();
+            })(performance.now());
+        });
+    }
+
+    // dark stand-ins, so a layer can be held back while the ones before it
+    // are already lit. Sized from the loaded model, not hard-coded.
+    const zerosH1 = new Float32Array(network.hidden1Activations.length);
+    const zerosH2 = new Float32Array(network.hidden2Activations.length);
+    const zerosOut = new Float32Array(network.outputActivations.length);
+
+    function setBusy(on) {
+        document.body.classList.toggle('is-busy', on);
+        btnClear.disabled = on;
+        btnCheck.disabled = on || drawingCanvas.isEmpty();
+    }
+
+    // The big canvas flies back to the size and place it has inside the
+    // card: measure where it is, switch pages, measure again, then play
+    // the difference out as a transform.
+    function settleIntoCard() {
+        const el = drawingCanvas.canvas;
+        const from = el.getBoundingClientRect();
+        setStage('result');
+        const to = el.getBoundingClientRect();
+
+        const scale = from.width / to.width;
+        el.style.transformOrigin = 'top left';
+        el.style.position = 'relative';
+        el.style.zIndex = '950';
+        el.style.transform =
+            `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(${scale})`;
+
+        return new Promise((done) => {
+            requestAnimationFrame(() => {
+                el.style.transition = `transform ${SETTINGS.SETTLE_MS}ms ease`;
+                el.style.transform = 'none';
+                setTimeout(() => {
+                    el.style.cssText = '';   // hand the canvas back to style.css
+                    done();
+                }, SETTINGS.SETTLE_MS);
+            });
+        });
+    }
+
+    async function runCheck() {
+        setBusy(true);
+
+        // fills stageRaw / stageCentered / stageBlurred and shiftX / shiftY
+        const input = drawingCanvas.getPixels();
+        network.forward(input);
+
+        const { stageRaw, stageCentered, stageBlurred, shiftX, shiftY } = drawingCanvas;
+
+        sectionTitle.textContent = 'Centering…';
+        await over(SETTINGS.CENTER_MS, (t) => {
+            drawingCanvas.renderStage(stageRaw, shiftX * t, shiftY * t);
+        });
+
+        sectionTitle.textContent = 'Smoothing…';
+        const mixed = new Float32Array(784);
+        await over(SETTINGS.SMOOTH_MS, (t) => {
+            for (let i = 0; i < 784; i++) {
+                mixed[i] = stageCentered[i] * (1 - t) + stageBlurred[i] * t;
+            }
+            drawingCanvas.renderStage(mixed);
+        });
+
+        sectionTitle.textContent = TITLE_DRAW;
+
+        // the answer must not be sitting there before the network gets to it
+        resetOutputDisplay();
+        visualizer.update(zerosH1, zerosH2, zerosOut);
+
+        await settleIntoCard();
+
+        // On a narrow screen the results sit below the fold, and the reveal
+        // would play where nobody can see it. Bring them up first.
+        const results = document.querySelector('.panel-right');
+        if (results.getBoundingClientRect().top > window.innerHeight * 0.5) {
+            results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            await sleep(350);
+        }
+
+        visualizer.update(network.hidden1Activations, zerosH2, zerosOut);
+        await sleep(SETTINGS.LAYER_MS);
+        visualizer.update(network.hidden1Activations, network.hidden2Activations, zerosOut);
+        await sleep(SETTINGS.LAYER_MS);
+        visualizer.update(network.hidden1Activations, network.hidden2Activations,
+                          network.outputActivations);
+        updateOutputDisplay(network.outputActivations);
+
+        setBusy(false);
+        touched();
+    }
+
     btnCheck.addEventListener('click', () => {
         if (drawingCanvas.isEmpty()) return;
         touched();
-        setStage('result');
+        runCheck();
     });
 
     // Clear always empties the canvas. From the result page it is also
     // the way back to the big canvas, so a visitor can try another digit.
     btnClear.addEventListener('click', () => {
         resetAll();
+        sectionTitle.textContent = TITLE_DRAW;
         setStage('draw');
         touched();
     });
@@ -101,6 +216,7 @@
         if (SETTINGS.IDLE_RETURN_MS > 0 && !landing.isVisible &&
             performance.now() - lastInteraction > SETTINGS.IDLE_RETURN_MS) {
             resetAll();              // next visitor should not see the last drawing
+            sectionTitle.textContent = TITLE_DRAW;
             setStage('draw');        // ... and starts where the last one did
             landing.show();
         }
