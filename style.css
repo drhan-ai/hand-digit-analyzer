@@ -36,6 +36,10 @@
 
     /* One font for the whole project. The landing screen reads this too. */
     --font-sans: 'Montserrat', sans-serif;
+
+    /* MGA purple is too dark to read on black (2.4:1). Same hue,
+       lifted for the drawing stage's black background (8.6:1). */
+    --mga-purple-light: #B49BD9;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -454,4 +458,92 @@ html { font-size: 20px; }
     @keyframes face-hop {
         50% { transform: translateY(-14px); }
     }
+}
+
+/* ===================================================================
+   STAGES
+   -------------------------------------------------------------------
+   The page has two looks, switched by a class on <body>:
+
+     .stage-draw     one big square canvas on black, nothing else.
+                     Where a visitor lands after tapping the face.
+     .stage-result   the normal page — predictions, network graphic.
+                     Reached by pressing Check digit.
+
+   Nothing moves in the HTML between the two; only this file decides
+   what is on screen. js/main.js sets the class.
+
+   The canvas must stay SQUARE. js/canvas.js maps a pointer onto a
+   28x28 grid using separate x and y scales, so a non-square canvas
+   would squash the drawing before the network ever sees it.
+   =================================================================== */
+
+/* Check digit belongs to the drawing stage only */
+.btn-check { display: none; }
+body.stage-draw .btn-check { display: inline-block; }
+
+body.stage-draw .utility-bar,
+body.stage-draw header,
+body.stage-draw footer,
+body.stage-draw .panel-right,
+body.stage-draw .knights-card {
+    display: none;
+}
+
+body.stage-draw main { display: block; padding: 0; }
+body.stage-draw .panel-left { display: block; }
+
+body.stage-draw .drawing-section {
+    position: fixed;
+    inset: 0;
+    z-index: 900;
+
+    background: #000;
+    border: none;
+    border-radius: 0;
+    padding: 16px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+}
+
+/* the largest square that fits, whatever the screen shape */
+body.stage-draw #drawing-canvas {
+    width: min(92vw, 74vh);
+    height: auto;
+
+    /* blown up from 280px, so show the pixels rather than blur them —
+       the grid is the point */
+    image-rendering: pixelated;
+}
+
+body.stage-draw .drawing-controls {
+    width: min(92vw, 74vh);
+    margin-top: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* a flex item will not shrink past its contents unless told to, and on a
+   phone the brush slider is what pushes the row off the screen */
+body.stage-draw .brush-size { min-width: 0; }
+
+body.stage-draw .section-title {
+    color: var(--mga-purple-light);
+    margin-bottom: 0;
+}
+
+body.stage-draw .brush-size .stat-label { color: var(--mga-gray); }
+
+/* drawing is locked while the page is working through a stage */
+body.is-busy #drawing-canvas { pointer-events: none; }
+
+.btn:disabled {
+    background: var(--bg-sunken);
+    border-color: var(--border-strong);
+    color: var(--text-muted);
+    cursor: default;
 }
