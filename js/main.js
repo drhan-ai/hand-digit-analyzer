@@ -201,22 +201,24 @@
 
         await settleIntoCard();
 
-        // On a narrow screen the results sit below the fold, and the reveal
-        // would play where nobody can see it. Bring them up, and wait for the
-        // page to actually come to rest before lighting anything — a phone
-        // takes longer to travel than a laptop, which has nowhere to go.
-        const results = document.querySelector('.panel-right');
-        if (results.getBoundingClientRect().top > window.innerHeight * 0.5) {
-            results.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            await scrollHasStopped();
-        }
-
         if (FEATURES.scanAndFlow) {
             // The prepared grid is read, row by row: 784 numbers handed over.
             await over(SETTINGS.SCAN_MS, (t) => {
                 drawingCanvas.renderScan(stageBlurred, t);
             });
             drawingCanvas.renderStage(stageBlurred);
+
+            // Only now go looking for the network. On a narrow screen the
+            // results are below the fold, and travelling there any earlier
+            // would have carried the canvas off the top of the screen with
+            // the scan still running on it. Wait for the page to come to
+            // rest too — a phone has further to go than a laptop, which has
+            // nowhere to go at all.
+            const results = document.querySelector('.panel-right');
+            if (results.getBoundingClientRect().top > window.innerHeight * 0.5) {
+                results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                await scrollHasStopped();
+            }
 
             // Then the signal travels. Each layer lights when the wires reach
             // it, which is the order the arithmetic actually happens in.
