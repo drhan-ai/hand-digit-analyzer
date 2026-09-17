@@ -482,11 +482,6 @@ html { font-size: 20px; }
 .btn-check { display: none; }
 body.stage-draw .btn-check { display: inline-block; }
 
-/* Clear and Check digit are the same kind of control, so they look the
-   same. White, because MGA purple sits too close to the black behind it. */
-.btn-check { background: #fff; color: var(--mga-purple); }
-.btn-check:hover:not(:disabled) { background: var(--bg-sunken); color: var(--mga-purple-dark); }
-
 body.stage-draw .utility-bar,
 body.stage-draw header,
 body.stage-draw footer,
@@ -545,14 +540,16 @@ body.stage-draw .drawing-controls {
 
 body.stage-draw .brush-size {
     margin-left: auto;          /* pushed to the right edge of the row */
-    flex: 0 1 40%;
-    min-width: 0;               /* or the slider refuses to shrink on a phone */
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 6px;
+    flex: 0 0 auto;
+    min-width: 0;
+    align-items: center;
 }
 
-body.stage-draw .brush-size input[type="range"] { width: 100%; }
+/* short and fixed: the brush is a nudge, not the main control here */
+body.stage-draw .brush-size input[type="range"] {
+    flex: 0 0 auto;
+    width: 110px;
+}
 
 body.stage-draw .section-title {
     color: var(--mga-purple-light);
@@ -568,5 +565,15 @@ body.is-busy #drawing-canvas { pointer-events: none; }
     background: var(--bg-sunken);
     border-color: var(--border-strong);
     color: var(--text-muted);
+    cursor: default;
+}
+
+/* Check is quiet while there is nothing to check — it wears Clear's face so
+   the pair reads as one row — and turns MGA purple once a digit is drawn.
+   Must come after .btn:disabled to win. */
+.btn-check:disabled {
+    background: #fff;
+    border-color: var(--mga-purple);
+    color: var(--mga-purple);
     cursor: default;
 }
