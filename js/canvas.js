@@ -237,16 +237,17 @@ class DrawingCanvas {
      * how the 784 values reach the network. What has been read is at full
      * strength; what has not is held back. progress runs 0 to 1.
      *
-     * SCAN_PASSES is how many times the head crosses. One pass per grid row
-     * would be truest, but at any watchable total that leaves each crossing
-     * about two frames long and all anyone sees is a band sliding down.
-     * Fewer, slower passes show the sideways travel, which is the point.
-     * Lower it for a more deliberate sweep.
+     * SCAN_PASSES is how many times the head crosses: one per grid row, so
+     * the sweep lines up with the 28 rows it is reading. That only works if
+     * SCAN_MS (js/face.js) leaves each crossing long enough to see — at 2800
+     * it is 100ms, about six frames. Cut the time without cutting the passes
+     * and the sideways travel disappears; all anyone sees is a band sliding
+     * down.
      */
     renderScan(pixels, progress) {
         this.renderStage(pixels);
 
-        const SCAN_PASSES = 14;
+        const SCAN_PASSES = 28;
         const ROWS_PER_PASS = 28 / SCAN_PASSES;
 
         const ctx = this.ctx;
