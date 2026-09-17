@@ -482,6 +482,11 @@ html { font-size: 20px; }
 .btn-check { display: none; }
 body.stage-draw .btn-check { display: inline-block; }
 
+/* Clear and Check digit are the same kind of control, so they look the
+   same. White, because MGA purple sits too close to the black behind it. */
+.btn-check { background: #fff; color: var(--mga-purple); }
+.btn-check:hover:not(:disabled) { background: var(--bg-sunken); color: var(--mga-purple-dark); }
+
 body.stage-draw .utility-bar,
 body.stage-draw header,
 body.stage-draw footer,
@@ -492,6 +497,14 @@ body.stage-draw .knights-card {
 
 body.stage-draw main { display: block; padding: 0; }
 body.stage-draw .panel-left { display: block; }
+
+body.stage-draw {
+    /* One number decides the square's size, and the control row matches it
+       so the slider ends exactly where the canvas does.
+       The largest square that still leaves room for the title above and the
+       two control rows below — 170px covers both plus the gaps. */
+    --draw-size: min(92vw, calc(100vh - 170px));
+}
 
 body.stage-draw .drawing-section {
     position: fixed;
@@ -512,7 +525,7 @@ body.stage-draw .drawing-section {
 
 /* the largest square that fits, whatever the screen shape */
 body.stage-draw #drawing-canvas {
-    width: min(92vw, 74vh);
+    width: var(--draw-size);
     height: auto;
 
     /* blown up from 280px, so show the pixels rather than blur them —
@@ -520,16 +533,26 @@ body.stage-draw #drawing-canvas {
     image-rendering: pixelated;
 }
 
+/* Buttons on the left, brush on the right with its slider stacked under
+   the label. The row spans the canvas, so the slider lines up with the
+   square's right edge. */
 body.stage-draw .drawing-controls {
-    width: min(92vw, 74vh);
+    width: var(--draw-size);
     margin-top: 0;
     flex-wrap: wrap;
-    justify-content: center;
+    align-items: flex-start;
 }
 
-/* a flex item will not shrink past its contents unless told to, and on a
-   phone the brush slider is what pushes the row off the screen */
-body.stage-draw .brush-size { min-width: 0; }
+body.stage-draw .brush-size {
+    margin-left: auto;          /* pushed to the right edge of the row */
+    flex: 0 1 40%;
+    min-width: 0;               /* or the slider refuses to shrink on a phone */
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+}
+
+body.stage-draw .brush-size input[type="range"] { width: 100%; }
 
 body.stage-draw .section-title {
     color: var(--mga-purple-light);
