@@ -106,6 +106,25 @@
         btnCheck.disabled = on || drawingCanvas.isEmpty();
     }
 
+    // Smooth scrolling has no reliable "done" event, so watch the position
+    // and carry on once it stops moving. The cap is there in case a browser
+    // never quite settles.
+    async function scrollHasStopped(capMs = 1200) {
+        const started = performance.now();
+        let last = window.scrollY;
+        let still = 0;
+        while (performance.now() - started < capMs) {
+            await sleep(60);
+            if (Math.abs(window.scrollY - last) < 1) {
+                still += 60;
+                if (still >= 120) return;
+            } else {
+                still = 0;
+            }
+            last = window.scrollY;
+        }
+    }
+
     // The big canvas flies back to the size and place it has inside the
     // card: measure where it is, switch pages, measure again, then play
     // the difference out as a transform.
@@ -166,11 +185,13 @@
         await settleIntoCard();
 
         // On a narrow screen the results sit below the fold, and the reveal
-        // would play where nobody can see it. Bring them up first.
+        // would play where nobody can see it. Bring them up, and wait for the
+        // page to actually come to rest before lighting anything — a phone
+        // takes longer to travel than a laptop, which has nowhere to go.
         const results = document.querySelector('.panel-right');
         if (results.getBoundingClientRect().top > window.innerHeight * 0.5) {
             results.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            await sleep(350);
+            await scrollHasStopped();
         }
 
         visualizer.update(network.hidden1Activations, zerosH2, zerosOut);

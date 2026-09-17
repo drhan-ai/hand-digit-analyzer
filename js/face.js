@@ -28,8 +28,8 @@
 
 const SETTINGS = {
     IDLE_RETURN_MS: 30000,   // <-- auto-return delay. This is the number to change.
-    SMILE_MS: 1100,
-    FADE_MS: 450,
+    SMILE_MS: 700,
+    FADE_MS: 300,
 
     CENTER_MS: 600,
     SMOOTH_MS: 400,
