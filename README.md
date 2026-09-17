@@ -31,8 +31,7 @@ separation. It appears only inside the graphic.
 ## Logos
 
 `img/mga-logo.png` — institutional logo, trimmed with the white background
-knocked out. It is the only logo the page uses. It links to mga.edu, as the
-brand guide requires.
+knocked out. It is the only logo the page uses.
 
 `img/logo.svg` — **placeholder, not an official mark.** A stand-in for a
 School of Computing sub-brand logo while the real one is being made. Nothing
