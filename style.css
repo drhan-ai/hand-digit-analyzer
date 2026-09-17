@@ -36,6 +36,15 @@
 
     /* One font for the whole project. The landing screen reads this too. */
     --font-sans: 'Montserrat', sans-serif;
+
+    /* MGA purple is too dark to read on black (2.4:1). Same hue,
+       lifted for the drawing stage's black background (8.6:1). */
+    --mga-purple-light: #B49BD9;
+
+    /* Not a brand colour, like --accent-warm: it marks the moments the page
+       is working on the drawing rather than waiting for one, and has to cut
+       away from the purple around it to do that. */
+    --stage-label: #F2C94C;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -74,13 +83,19 @@ header {
     padding: 22px 30px;
     background: var(--bg-card);
     border-bottom: 1px solid var(--border-color);
-    flex-wrap: wrap;
+
+    /* One row: the badges belong at the far right, across from the title,
+       not stacked underneath it. Below 900px they do go under — see the
+       media query — because three of them and a title will not fit on a
+       phone without a sideways scroll. */
+    flex-wrap: nowrap;
 }
 
 .logo {
     display: flex;
     align-items: center;
     gap: 20px;
+    min-width: 0;      /* a flex item will not shrink past its text otherwise */
 }
 
 .mga-logo {
@@ -120,7 +135,7 @@ h1 {
     margin-top: 5px;
 }
 
-.header-stats { display: flex; gap: 10px; }
+.header-stats { display: flex; gap: 10px; flex: none; }
 
 .stat-badge {
     background: var(--bg-sunken);
@@ -209,14 +224,6 @@ section {
 .btn:hover { background: var(--mga-purple-dark); border-color: var(--mga-purple-dark); }
 .btn-clear { background: #fff; color: var(--mga-purple); }
 .btn-clear:hover { background: var(--bg-sunken); color: var(--mga-purple-dark); }
-
-.brush-size { display: flex; align-items: center; gap: 9px; flex: 1; }
-
-.brush-size input[type="range"] {
-    flex: 1;
-    accent-color: var(--mga-purple);
-    cursor: pointer;
-}
 
 /* ---------- predictions ---------- */
 .output-grid {
@@ -365,7 +372,7 @@ footer {
 /* ---------- responsive ---------- */
 @media (max-width: 900px) {
     main { grid-template-columns: 1fr; padding: 18px; }
-    header { padding: 18px; }
+    header { padding: 18px; flex-wrap: wrap; }
     .header-stats { width: 100%; }
     .output-grid { grid-template-columns: repeat(5, 1fr); }
     .mga-logo { height: 50px; }
@@ -454,4 +461,114 @@ html { font-size: 20px; }
     @keyframes face-hop {
         50% { transform: translateY(-14px); }
     }
+}
+
+/* ===================================================================
+   STAGES
+   -------------------------------------------------------------------
+   The page has two looks, switched by a class on <body>:
+
+     .stage-draw     one big square canvas on black, nothing else.
+                     Where a visitor lands after tapping the face.
+     .stage-result   the normal page — predictions, network graphic.
+                     Reached by pressing Check digit.
+
+   Nothing moves in the HTML between the two; only this file decides
+   what is on screen. js/main.js sets the class.
+
+   The canvas must stay SQUARE. js/canvas.js maps a pointer onto a
+   28x28 grid using separate x and y scales, so a non-square canvas
+   would squash the drawing before the network ever sees it.
+   =================================================================== */
+
+/* Check digit belongs to the drawing stage only */
+.btn-check { display: none; }
+body.stage-draw .btn-check { display: inline-block; }
+
+body.stage-draw .utility-bar,
+body.stage-draw header,
+body.stage-draw footer,
+body.stage-draw .panel-right,
+body.stage-draw .knights-card {
+    display: none;
+}
+
+body.stage-draw main { display: block; padding: 0; }
+body.stage-draw .panel-left { display: block; }
+
+body.stage-draw {
+    /* One number decides the square's size, and the control row matches it
+       so the slider ends exactly where the canvas does.
+       The largest square that still leaves room for the title above and the
+       button row below — 130px covers both plus the gaps. */
+    --draw-size: min(92vw, calc(100vh - 130px));
+}
+
+body.stage-draw .drawing-section {
+    position: fixed;
+    inset: 0;
+    z-index: 900;
+
+    background: #000;
+    border: none;
+    border-radius: 0;
+    padding: 16px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+}
+
+/* the largest square that fits, whatever the screen shape */
+body.stage-draw #drawing-canvas {
+    width: var(--draw-size);
+    height: auto;
+
+    /* blown up from 280px, so show the pixels rather than blur them —
+       the grid is the point */
+    image-rendering: pixelated;
+}
+
+/* The button row is exactly as wide as the canvas and the two buttons split
+   it, so the row ends level with the square on both sides. */
+body.stage-draw .drawing-controls {
+    width: var(--draw-size);
+    margin-top: 0;
+    align-items: stretch;
+}
+
+body.stage-draw .drawing-controls .btn { flex: 1; }
+
+body.stage-draw .section-title {
+    color: var(--mga-purple-light);
+    margin-bottom: 0;
+
+    /* Big enough to read across a room. --draw-size already reserves more
+       height than this needs, so the square does not shrink for it. */
+    font-size: clamp(0.95rem, 2.6vmin, 1.5rem);
+}
+
+/* worn only while the heading names a step being carried out */
+body.stage-draw .section-title.is-stage { color: var(--stage-label); }
+
+/* drawing is locked while the page is working through a stage */
+body.is-busy #drawing-canvas { pointer-events: none; }
+
+.btn:disabled {
+    background: var(--bg-sunken);
+    border-color: var(--border-strong);
+    color: var(--text-muted);
+    cursor: default;
+}
+
+/* Check is quiet while there is nothing to check — it wears Clear's face so
+   the pair reads as one row — and turns MGA purple once a digit is drawn.
+   Must come after .btn:disabled to win. */
+.btn-check:disabled {
+    background: #fff;
+    border-color: var(--mga-purple);
+    color: var(--mga-purple);
+    cursor: default;
 }

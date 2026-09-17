@@ -86,10 +86,7 @@
                 <canvas id="drawing-canvas"></canvas>
                 <div class="drawing-controls">
                     <button class="btn btn-clear" id="btn-clear">Clear</button>
-                    <div class="brush-size">
-                        <span class="stat-label">Brush</span>
-                        <input type="range" id="brush-size" min="1" max="3" value="2" step="0.5">
-                    </div>
+                    <button class="btn btn-check" id="btn-check">Check digit</button>
                 </div>
             </section>
 
@@ -104,6 +101,18 @@
         </div>
 
         <div class="panel-right">
+            <section class="visualization-section">
+                <h2 class="section-title">Inside the Network</h2>
+                <div class="viz-container">
+                    <canvas id="network-canvas"></canvas>
+                </div>
+                <div class="legend">
+                    <span><i class="swatch dot"></i> A neuron firing</span>
+                    <span><i class="swatch pos"></i> Votes for the answer</span>
+                    <span><i class="swatch neg"></i> Votes against it</span>
+                </div>
+            </section>
+
             <section class="output-section">
                 <h2 class="section-title">What the Network Thinks</h2>
                 <div class="output-grid" id="output-grid">
@@ -157,18 +166,6 @@
                         <div class="confidence-bar"><div class="confidence-fill"></div></div>
                         <span class="confidence-value">0%</span>
                     </div>
-                </div>
-            </section>
-
-            <section class="visualization-section">
-                <h2 class="section-title">Inside the Network</h2>
-                <div class="viz-container">
-                    <canvas id="network-canvas"></canvas>
-                </div>
-                <div class="legend">
-                    <span><i class="swatch dot"></i> A neuron firing</span>
-                    <span><i class="swatch pos"></i> Votes for the answer</span>
-                    <span><i class="swatch neg"></i> Votes against it</span>
                 </div>
             </section>
         </div>

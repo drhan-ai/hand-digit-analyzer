@@ -5,10 +5,12 @@
 //   active   = a neuron firing            (MGA purple #633393)
 //   positive = weight pushing a digit UP  (purple)
 //   negative = weight pushing it DOWN     (warm accent, for contrast)
+//   neutral  = a weight near zero, the middle of the scale between them
 // ---------------------------------------------------------------
 const PALETTE = {
     active:   [99, 51, 147],
     inactive: [214, 210, 222],
+    neutral:  [206, 202, 214],
     positive: [99, 51, 147],
     negative: [194, 87, 31],
     ring:     [170, 164, 184],
@@ -20,7 +22,16 @@ const PALETTE = {
     mono:      '"JetBrains Mono", monospace',
 };
 const A = PALETTE.active, I = PALETTE.inactive, P = PALETTE.positive,
-      N = PALETTE.negative, R = PALETTE.ring;
+      N = PALETTE.negative, R = PALETTE.ring, Z = PALETTE.neutral;
+
+/** blend `from` toward `to`, t running 0 to 1 */
+function mix(from, to, t) {
+    return [
+        Math.round(from[0] + (to[0] - from[0]) * t),
+        Math.round(from[1] + (to[1] - from[1]) * t),
+        Math.round(from[2] + (to[2] - from[2]) * t),
+    ];
+}
 const ACCENT_HEX = PALETTE.accentHex, LABEL_HEX = PALETTE.labelHex,
       LABEL_MUTED = PALETTE.mutedHex, BG_HEX = PALETTE.bgHex,
       LABEL_FONT = PALETTE.font, MONO_FONT = PALETTE.mono;
@@ -48,6 +59,7 @@ class NetworkVisualizer {
     }
 
     setWeights(network) {
+        this.setFlow();      // nothing is travelling until someone says so
         this.weights = network;
         this.h1Size = network.h1Size || 32;
         this.h2Size = network.h2Size || 32;
@@ -65,13 +77,31 @@ class NetworkVisualizer {
             }
         }
         all.sort((a, b) => b.magnitude - a.magnitude);
-        return all.slice(0, keep);
+
+        const kept = all.slice(0, keep);
+        // Where each weight sits against the strongest one here, 0 to 1. The
+        // colour is mixed by this, so how hard a connection pulls is in the
+        // wire itself rather than only in which of two colours it is.
+        const strongest = all[0] ? all[0].magnitude : 1;
+        for (const c of kept) c.pull = c.magnitude / strongest;
+        return kept;
     }
 
     update(h1, h2, out) {
         this.h1 = h1;
         this.h2 = h2;
         this.out = out;
+    }
+
+    /**
+     * How far the signal has travelled down each set of wires, 0 to 1.
+     * Below 1 the wires are drawn only as far as it has reached and their
+     * dashes march, so a layer is seen arriving rather than appearing.
+     * Both default to 1 — fully arrived — which is every other moment.
+     */
+    setFlow(toHidden2 = 1, toOutput = 1) {
+        this.flow12 = toHidden2;
+        this.flow23 = toOutput;
     }
 
     render() {
@@ -89,12 +119,15 @@ class NetworkVisualizer {
         const pad = 34;
         const y1 = 46;              // hidden 1
         const y2 = h * 0.52;        // hidden 2
-        const y3 = h - 52;          // output
+        // Lifted clear of the bottom: the output row carries its label below
+        // it, where no wires run. 17 for the circle, 8 more when it is the
+        // winner, 3 for the confidence ring, then room for the text.
+        const y3 = h - 62;          // output
 
         const winner = this._winner();
 
-        this._connections(ctx, this.conn12, this.h1, w, pad, y1, y2, this.h1Size, this.h2Size, 5, -1, 0.45);
-        this._connections(ctx, this.conn23, this.h2, w, pad, y2, y3, this.h2Size, 10, 7, winner);
+        this._connections(ctx, this.conn12, this.h1, w, pad, y1, y2, this.h1Size, this.h2Size, 5, -1, 0.45, this.flow12);
+        this._connections(ctx, this.conn23, this.h2, w, pad, y2, y3, this.h2Size, 10, 7, winner, 1, this.flow23);
 
         this._hiddenRow(ctx, this.h1, w, pad, y1, this.h1Size);
         this._hiddenRow(ctx, this.h2, w, pad, y2, this.h2Size);
@@ -106,7 +139,7 @@ class NetworkVisualizer {
         ctx.textBaseline = 'alphabetic';
         ctx.fillText(`HIDDEN 1  (${this.h1Size} neurons, ReLU)`, pad, y1 - 20);
         ctx.fillText(`HIDDEN 2  (${this.h2Size} neurons, ReLU)`, pad, y2 - 20);
-        ctx.fillText('OUTPUT  (10 digits, Softmax)', pad, y3 - 26);
+        ctx.fillText('OUTPUT  (10 digits, Softmax)', pad, y3 + 42);
     }
 
     _winner() {
@@ -126,17 +159,32 @@ class NetworkVisualizer {
      * and fade everything else. That is what makes the picture readable —
      * you can see which neurons voted for the answer.
      */
-    _connections(ctx, list, acts, w, pad, yA, yB, nA, nB, radius, winner, dim = 1) {
+    _connections(ctx, list, acts, w, pad, yA, yB, nA, nB, radius, winner, dim = 1, flow = 1) {
+        // Mid-flight: show the wires only as far down as the signal has got,
+        // and march the dashes so the direction of travel is visible.
+        const travelling = flow < 1;
+        if (travelling) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(0, yA, w, (yB - yA + radius + 8) * flow);
+            ctx.clip();
+        }
+
         ctx.setLineDash([5, 3]);
+        if (travelling) ctx.lineDashOffset = -(performance.now() / 45) % 8;
         for (const c of list) {
             const focused = winner < 0 || c.to === winner;
             const act = acts[c.from] || 0;
-            const strength = Math.min(act * c.magnitude * 2, 1);
 
-            const alpha = (focused ? 0.16 + strength * 0.68 : 0.05 + strength * 0.06) * dim;
-            const col = c.weight > 0 ? P : N;
+            // Colour says what the weight is: from the neutral middle out to
+            // purple for pulling the digit up, warm for pulling it down, as
+            // far as its pull takes it. Opacity says whether anything is
+            // coming through right now.
+            const col = mix(Z, c.weight > 0 ? P : N, c.pull);
+            const alpha = (focused ? 0.12 + act * 0.72 : 0.04 + act * 0.09) * dim;
+
             ctx.strokeStyle = `rgba(${col[0]}, ${col[1]}, ${col[2]}, ${alpha})`;
-            ctx.lineWidth = focused ? 1.4 : 0.8;
+            ctx.lineWidth = (focused ? 0.7 + c.pull * 1.1 : 0.5 + c.pull * 0.5);
 
             const xA = this._x(c.from, nA, w, pad);
             const xB = this._x(c.to, nB, w, pad);
@@ -145,7 +193,10 @@ class NetworkVisualizer {
             ctx.bezierCurveTo(xA, (yA + yB) / 2, xB, (yA + yB) / 2, xB, yB - radius);
             ctx.stroke();
         }
+
         ctx.setLineDash([]);
+        ctx.lineDashOffset = 0;
+        if (travelling) ctx.restore();
     }
 
     _hiddenRow(ctx, acts, w, pad, y, n) {

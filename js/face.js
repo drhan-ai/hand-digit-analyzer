@@ -15,12 +15,57 @@
                    layer starts to fade.
    FADE_MS         Length of the fade-out. Pushed into style.css as
                    --face-fade, so the two can never drift apart.
+
+   Then, after Check digit is pressed, the page walks through what it
+   does to the drawing before the network sees it:
+
+   CENTER_MS       The digit slides to the middle of the grid.
+   SMOOTH_MS       Its edges soften.
+   SETTLE_MS       The big canvas shrinks back into its card.
+   SCAN_MS         The prepared grid is read row by row, the way its 784
+                   values are handed over.
+   FLOW_MS         The signal travels from one layer to the next along the
+                   wires. Two of these pass before the answer.
    =================================================================== */
+
+/* ===================================================================
+   WHICH VERSION THIS BUILD IS
+   -------------------------------------------------------------------
+   The demo grew in four steps, and each one is kept so they can be shown
+   side by side. Change this single number and the page becomes that step.
+
+     1  What the demo did to begin with: the network reacts to every
+        stroke as it is drawn.
+     2  A face greets the visitor first. Tapping it hands over to 1.
+     3  Drawing moves to one big square with a Check digit button, and
+        pressing it shows the centring and smoothing the drawing goes
+        through before the network ever sees it.
+     4  The prepared grid is read row by row, then the signal is watched
+        travelling down the wires layer by layer.
+
+   Everything else — colours, sizes, the header, the brush — is the same
+   whichever number this is, so a comparison shows only the step itself.
+   =================================================================== */
+
+const VERSION = 4;
+
+const FEATURES = {
+    landing:     VERSION >= 2,
+    stagedCheck: VERSION >= 3,
+    scanAndFlow: VERSION >= 4,
+};
+
 
 const SETTINGS = {
     IDLE_RETURN_MS: 30000,   // <-- auto-return delay. This is the number to change.
-    SMILE_MS: 1100,
-    FADE_MS: 450,
+    SMILE_MS: 700,
+    FADE_MS: 300,
+
+    CENTER_MS: 600,
+    SMOOTH_MS: 400,
+    SETTLE_MS: 600,
+    SCAN_MS: 2800,
+    FLOW_MS: 500,
 };
 
 

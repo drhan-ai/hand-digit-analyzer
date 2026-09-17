@@ -23,11 +23,6 @@ Official MGA colors (brand guide):
 | Gray | `#B0B6BB` |
 | Light gray | `#C9CED1` |
 
-One color is not from the brand: `#C2571F`, the warm accent used for
-negative weights in the network graphic. Purple alone cannot show both
-"votes for" and "votes against", and its complement gives the clearest
-separation. It appears only inside the graphic.
-
 ## Logos
 
 `img/mga-logo.png` — institutional logo, trimmed with the white background
