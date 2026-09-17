@@ -13,7 +13,7 @@ class DrawingCanvas {
         this.cellSize = this.canvas.width / this.gridSize;
 
         this.drawing = false;
-        this.brushSize = 2;
+        this.brushSize = 1.5;   // fixed; the brush slider was removed
         this.lastPos = null;
         this.dirty = false;
 

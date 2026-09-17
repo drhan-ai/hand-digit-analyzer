@@ -4,7 +4,7 @@
     const networkCanvas = document.getElementById('network-canvas');
     const visualizer = new NetworkVisualizer(networkCanvas);
 
-    // How long ago someone last drew, cleared, or moved the brush slider.
+    // How long ago someone last drew or cleared.
     // The idle check at the bottom of animate() compares against this.
     let lastInteraction = performance.now();
     function touched() { lastInteraction = performance.now(); }
@@ -17,7 +17,6 @@
     const outputCards = document.getElementById('output-grid').querySelectorAll('.output-card');
     const btnClear = document.getElementById('btn-clear');
     const btnCheck = document.getElementById('btn-check');
-    const brushSlider = document.getElementById('brush-size');
 
     // STAGES. 'draw' is one big canvas on black; 'result' is the normal
     // page. What each looks like is entirely in style.css — this only
@@ -75,11 +74,6 @@
     btnClear.addEventListener('click', () => {
         resetAll();
         setStage('draw');
-        touched();
-    });
-
-    brushSlider.addEventListener('input', (e) => {
-        drawingCanvas.setBrushSize(parseFloat(e.target.value));
         touched();
     });
 

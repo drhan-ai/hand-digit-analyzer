@@ -214,14 +214,6 @@ section {
 .btn-clear { background: #fff; color: var(--mga-purple); }
 .btn-clear:hover { background: var(--bg-sunken); color: var(--mga-purple-dark); }
 
-.brush-size { display: flex; align-items: center; gap: 9px; flex: 1; }
-
-.brush-size input[type="range"] {
-    flex: 1;
-    accent-color: var(--mga-purple);
-    cursor: pointer;
-}
-
 /* ---------- predictions ---------- */
 .output-grid {
     display: grid;
@@ -497,8 +489,8 @@ body.stage-draw {
     /* One number decides the square's size, and the control row matches it
        so the slider ends exactly where the canvas does.
        The largest square that still leaves room for the title above and the
-       two control rows below — 170px covers both plus the gaps. */
-    --draw-size: min(92vw, calc(100vh - 170px));
+       button row below — 130px covers both plus the gaps. */
+    --draw-size: min(92vw, calc(100vh - 130px));
 }
 
 body.stage-draw .drawing-section {
@@ -528,9 +520,8 @@ body.stage-draw #drawing-canvas {
     image-rendering: pixelated;
 }
 
-/* Buttons on the left, brush on the right with its slider stacked under
-   the label. The row spans the canvas, so the slider lines up with the
-   square's right edge. */
+/* The button row spans the canvas, so Clear starts level with the square's
+   left edge. */
 body.stage-draw .drawing-controls {
     width: var(--draw-size);
     margin-top: 0;
@@ -538,25 +529,10 @@ body.stage-draw .drawing-controls {
     align-items: flex-start;
 }
 
-body.stage-draw .brush-size {
-    margin-left: auto;          /* pushed to the right edge of the row */
-    flex: 0 0 auto;
-    min-width: 0;
-    align-items: center;
-}
-
-/* short and fixed: the brush is a nudge, not the main control here */
-body.stage-draw .brush-size input[type="range"] {
-    flex: 0 0 auto;
-    width: 110px;
-}
-
 body.stage-draw .section-title {
     color: var(--mga-purple-light);
     margin-bottom: 0;
 }
-
-body.stage-draw .brush-size .stat-label { color: var(--mga-gray); }
 
 /* drawing is locked while the page is working through a stage */
 body.is-busy #drawing-canvas { pointer-events: none; }
