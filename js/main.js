@@ -100,6 +100,29 @@
     const zerosH2 = new Float32Array(network.hidden2Activations.length);
     const zerosOut = new Float32Array(network.outputActivations.length);
 
+    // Working copies a layer is revealed through, so the real activations
+    // are never touched.
+    const risingH1 = new Float32Array(zerosH1.length);
+    const risingH2 = new Float32Array(zerosH2.length);
+    const risingOut = new Float32Array(zerosOut.length);
+
+    /**
+     * Fill `into` with `from`, brought up from nothing left to right: at any
+     * moment some neurons are at full strength, some are on their way, and
+     * the ones further right have not started. A layer arrives as a wave
+     * rather than all at once. SPREAD is how much of the step is spent
+     * starting neurons — the rest is how long each one takes to rise.
+     */
+    const SPREAD = 0.55;
+    function rise(from, into, t) {
+        const n = from.length;
+        for (let i = 0; i < n; i++) {
+            const begins = (i / n) * SPREAD;
+            const p = Math.min(1, Math.max(0, (t - begins) / (1 - SPREAD)));
+            into[i] = from[i] * p;
+        }
+    }
+
     function setBusy(on) {
         document.body.classList.toggle('is-busy', on);
         btnClear.disabled = on;
@@ -194,10 +217,25 @@
             await scrollHasStopped();
         }
 
-        visualizer.update(network.hidden1Activations, zerosH2, zerosOut);
-        await sleep(SETTINGS.LAYER_MS);
-        visualizer.update(network.hidden1Activations, network.hidden2Activations, zerosOut);
-        await sleep(SETTINGS.LAYER_MS);
+        await over(SETTINGS.LAYER_MS, (t) => {
+            rise(network.hidden1Activations, risingH1, t);
+            visualizer.update(risingH1, zerosH2, zerosOut);
+        });
+
+        await over(SETTINGS.LAYER_MS, (t) => {
+            rise(network.hidden2Activations, risingH2, t);
+            visualizer.update(network.hidden1Activations, risingH2, zerosOut);
+        });
+
+        // the confidences climb with the output neurons rather than appearing
+        await over(SETTINGS.LAYER_MS, (t) => {
+            rise(network.outputActivations, risingOut, t);
+            visualizer.update(network.hidden1Activations, network.hidden2Activations,
+                              risingOut);
+            updateOutputDisplay(risingOut);
+        });
+
+        // land on the exact numbers, not whatever the last frame worked out
         visualizer.update(network.hidden1Activations, network.hidden2Activations,
                           network.outputActivations);
         updateOutputDisplay(network.outputActivations);
