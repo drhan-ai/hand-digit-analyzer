@@ -12,7 +12,16 @@
     // The face a visitor meets first. Tapping it hands the page over to
     // the demo; the idle check below brings it back.
     // Timings (including the auto-return delay) are in js/face.js.
-    const landing = new FaceLanding(document.getElementById('face-landing'), touched);
+    // Version 1 has no face, so the overlay goes and a stand-in keeps the
+    // rest of this file from having to ask whether it is there.
+    const landingRoot = document.getElementById('face-landing');
+    let landing;
+    if (FEATURES.landing) {
+        landing = new FaceLanding(landingRoot, touched);
+    } else {
+        landingRoot.remove();
+        landing = { isVisible: false, show() {} };
+    }
 
     const outputCards = document.getElementById('output-grid').querySelectorAll('.output-card');
     const btnClear = document.getElementById('btn-clear');
@@ -36,7 +45,11 @@
         document.body.classList.toggle('stage-result', next === 'result');
     }
 
-    setStage('draw');   // the face is on top of it until someone taps
+    // Where the page sits when nobody is mid-check. From version 3 that is
+    // the big canvas; before it, the demo is simply the demo.
+    const HOME_STAGE = FEATURES.stagedCheck ? 'draw' : 'result';
+
+    setStage(HOME_STAGE);
     btnCheck.disabled = true;   // nothing drawn yet
 
     network.loadWeights();
@@ -182,7 +195,9 @@
         // the answer must not be sitting there before the network gets to it
         resetOutputDisplay();
         visualizer.update(zerosH1, zerosH2, zerosOut);
-        visualizer.setFlow(0, 0);      // no wires drawn until the scan is done
+        if (FEATURES.scanAndFlow) {
+            visualizer.setFlow(0, 0);  // no wires drawn until the scan is done
+        }
 
         await settleIntoCard();
 
@@ -196,20 +211,22 @@
             await scrollHasStopped();
         }
 
-        // The prepared grid is read, row by row: 784 numbers handed over.
-        await over(SETTINGS.SCAN_MS, (t) => {
-            drawingCanvas.renderScan(stageBlurred, t);
-        });
-        drawingCanvas.renderStage(stageBlurred);
+        if (FEATURES.scanAndFlow) {
+            // The prepared grid is read, row by row: 784 numbers handed over.
+            await over(SETTINGS.SCAN_MS, (t) => {
+                drawingCanvas.renderScan(stageBlurred, t);
+            });
+            drawingCanvas.renderStage(stageBlurred);
 
-        // Then the signal travels. Each layer lights when the wires reach it,
-        // which is the order the arithmetic actually happens in.
-        visualizer.update(network.hidden1Activations, zerosH2, zerosOut);
-        await over(SETTINGS.FLOW_MS, (t) => visualizer.setFlow(t, 0));
+            // Then the signal travels. Each layer lights when the wires reach
+            // it, which is the order the arithmetic actually happens in.
+            visualizer.update(network.hidden1Activations, zerosH2, zerosOut);
+            await over(SETTINGS.FLOW_MS, (t) => visualizer.setFlow(t, 0));
 
-        visualizer.update(network.hidden1Activations, network.hidden2Activations,
-                          zerosOut);
-        await over(SETTINGS.FLOW_MS, (t) => visualizer.setFlow(1, t));
+            visualizer.update(network.hidden1Activations, network.hidden2Activations,
+                              zerosOut);
+            await over(SETTINGS.FLOW_MS, (t) => visualizer.setFlow(1, t));
+        }
 
         visualizer.update(network.hidden1Activations, network.hidden2Activations,
                           network.outputActivations);
@@ -220,18 +237,23 @@
         touched();
     }
 
-    btnCheck.addEventListener('click', () => {
-        if (drawingCanvas.isEmpty()) return;
-        touched();
-        runCheck();
-    });
+    if (FEATURES.stagedCheck) {
+        btnCheck.addEventListener('click', () => {
+            if (drawingCanvas.isEmpty()) return;
+            touched();
+            runCheck();
+        });
+    } else {
+        // Versions 1 and 2 answer as you draw; there is nothing to press.
+        btnCheck.remove();
+    }
 
     // Clear always empties the canvas. From the result page it is also
     // the way back to the big canvas, so a visitor can try another digit.
     btnClear.addEventListener('click', () => {
         resetAll();
         setTitle(TITLE_DRAW);
-        setStage('draw');
+        setStage(HOME_STAGE);
         touched();
     });
 
@@ -256,11 +278,11 @@
         // AUTO-RETURN TO THE LANDING SCREEN.
         // To change the delay, edit SETTINGS.IDLE_RETURN_MS in js/face.js
         // (0 there switches this off). Nothing to change here.
-        if (SETTINGS.IDLE_RETURN_MS > 0 && !landing.isVisible &&
+        if (FEATURES.landing && SETTINGS.IDLE_RETURN_MS > 0 && !landing.isVisible &&
             performance.now() - lastInteraction > SETTINGS.IDLE_RETURN_MS) {
             resetAll();              // next visitor should not see the last drawing
             setTitle(TITLE_DRAW);
-            setStage('draw');        // ... and starts where the last one did
+            setStage(HOME_STAGE);    // ... and starts where the last one did
             landing.show();
         }
 

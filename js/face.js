@@ -28,6 +28,34 @@
                    wires. Two of these pass before the answer.
    =================================================================== */
 
+/* ===================================================================
+   WHICH VERSION THIS BUILD IS
+   -------------------------------------------------------------------
+   The demo grew in four steps, and each one is kept so they can be shown
+   side by side. Change this single number and the page becomes that step.
+
+     1  What the demo did to begin with: the network reacts to every
+        stroke as it is drawn.
+     2  A face greets the visitor first. Tapping it hands over to 1.
+     3  Drawing moves to one big square with a Check digit button, and
+        pressing it shows the centring and smoothing the drawing goes
+        through before the network ever sees it.
+     4  The prepared grid is read row by row, then the signal is watched
+        travelling down the wires layer by layer.
+
+   Everything else — colours, sizes, the header, the brush — is the same
+   whichever number this is, so a comparison shows only the step itself.
+   =================================================================== */
+
+const VERSION = 4;
+
+const FEATURES = {
+    landing:     VERSION >= 2,
+    stagedCheck: VERSION >= 3,
+    scanAndFlow: VERSION >= 4,
+};
+
+
 const SETTINGS = {
     IDLE_RETURN_MS: 30000,   // <-- auto-return delay. This is the number to change.
     SMILE_MS: 700,
