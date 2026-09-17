@@ -5,10 +5,12 @@
 //   active   = a neuron firing            (MGA purple #633393)
 //   positive = weight pushing a digit UP  (purple)
 //   negative = weight pushing it DOWN     (warm accent, for contrast)
+//   neutral  = a weight near zero, the middle of the scale between them
 // ---------------------------------------------------------------
 const PALETTE = {
     active:   [99, 51, 147],
     inactive: [214, 210, 222],
+    neutral:  [206, 202, 214],
     positive: [99, 51, 147],
     negative: [194, 87, 31],
     ring:     [170, 164, 184],
@@ -20,7 +22,16 @@ const PALETTE = {
     mono:      '"JetBrains Mono", monospace',
 };
 const A = PALETTE.active, I = PALETTE.inactive, P = PALETTE.positive,
-      N = PALETTE.negative, R = PALETTE.ring;
+      N = PALETTE.negative, R = PALETTE.ring, Z = PALETTE.neutral;
+
+/** blend `from` toward `to`, t running 0 to 1 */
+function mix(from, to, t) {
+    return [
+        Math.round(from[0] + (to[0] - from[0]) * t),
+        Math.round(from[1] + (to[1] - from[1]) * t),
+        Math.round(from[2] + (to[2] - from[2]) * t),
+    ];
+}
 const ACCENT_HEX = PALETTE.accentHex, LABEL_HEX = PALETTE.labelHex,
       LABEL_MUTED = PALETTE.mutedHex, BG_HEX = PALETTE.bgHex,
       LABEL_FONT = PALETTE.font, MONO_FONT = PALETTE.mono;
@@ -66,7 +77,14 @@ class NetworkVisualizer {
             }
         }
         all.sort((a, b) => b.magnitude - a.magnitude);
-        return all.slice(0, keep);
+
+        const kept = all.slice(0, keep);
+        // Where each weight sits against the strongest one here, 0 to 1. The
+        // colour is mixed by this, so how hard a connection pulls is in the
+        // wire itself rather than only in which of two colours it is.
+        const strongest = all[0] ? all[0].magnitude : 1;
+        for (const c of kept) c.pull = c.magnitude / strongest;
+        return kept;
     }
 
     update(h1, h2, out) {
@@ -154,12 +172,16 @@ class NetworkVisualizer {
         for (const c of list) {
             const focused = winner < 0 || c.to === winner;
             const act = acts[c.from] || 0;
-            const strength = Math.min(act * c.magnitude * 2, 1);
 
-            const alpha = (focused ? 0.16 + strength * 0.68 : 0.05 + strength * 0.06) * dim;
-            const col = c.weight > 0 ? P : N;
+            // Colour says what the weight is: from the neutral middle out to
+            // purple for pulling the digit up, warm for pulling it down, as
+            // far as its pull takes it. Opacity says whether anything is
+            // coming through right now.
+            const col = mix(Z, c.weight > 0 ? P : N, c.pull);
+            const alpha = (focused ? 0.12 + act * 0.72 : 0.04 + act * 0.09) * dim;
+
             ctx.strokeStyle = `rgba(${col[0]}, ${col[1]}, ${col[2]}, ${alpha})`;
-            ctx.lineWidth = focused ? 1.4 : 0.8;
+            ctx.lineWidth = (focused ? 0.7 + c.pull * 1.1 : 0.5 + c.pull * 0.5);
 
             const xA = this._x(c.from, nA, w, pad);
             const xB = this._x(c.to, nB, w, pad);
