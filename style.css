@@ -83,6 +83,12 @@ header {
     gap: 20px;
 }
 
+/* Brand guide: the university logo links to mga.edu on every page. */
+.logo-home {
+    display: block;
+    flex: none;
+}
+
 .mga-logo {
     height: 62px;
     width: auto;
