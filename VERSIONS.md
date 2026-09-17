@@ -37,12 +37,17 @@ const FEATURES = {
 ## Going back to one
 
 ```bash
-git checkout v2-landing        # the branch, which can still be worked on
-git checkout v2.0-landing      # the tag, which is that moment exactly
+git checkout v2-landing        # the branch: version 2 as the code stands now
+git checkout v2.0-landing      # the tag: version 2 as it was first built
 ```
 
-A branch can move; a tag cannot. If a branch is ever changed by mistake,
-the tag is still there.
+They are not the same thing, and the difference grows. The branches are
+kept up to date — a fix made on `develop` is carried to all four, so they
+stay comparable — while each tag holds the code as it was the day the four
+were split apart. The branch answers "what does version 2 look like?"; the
+tag answers "what did it look like then?".
+
+A branch moves. A tag does not.
 
 ## Carrying a fix across
 
@@ -50,11 +55,22 @@ Fix it once on `develop`, then bring it to each version:
 
 ```bash
 git checkout v2-landing
-git merge develop              # keep v2-landing's VERSION line
+git merge develop
+git push
 ```
 
-The only conflict will be that one line, because that is the only line
-the branches disagree about.
+**There is no conflict, and the VERSION line looks after itself.** Their
+common ancestor had the line develop still has; only the branch changed it.
+Git sees one side edited and the other did not, and keeps the edit. So
+`v2-landing` comes out with everything new and its own `VERSION = 2`.
+
+Worth checking afterwards that nothing else drifted:
+
+```bash
+git diff v2-landing develop -- . ':!js/face.js'    # should print nothing
+```
+
+Netlify rebuilds each branch's address on push.
 
 ## Live
 
