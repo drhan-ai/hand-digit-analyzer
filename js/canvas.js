@@ -233,29 +233,51 @@ class DrawingCanvas {
     }
 
     /**
-     * The grid with a read head sweeping it, row by row and left to right —
+     * The grid with a read head sweeping it, left to right and working down —
      * how the 784 values reach the network. What has been read is at full
      * strength; what has not is held back. progress runs 0 to 1.
+     *
+     * SCAN_PASSES is how many times the head crosses. One pass per grid row
+     * would be truest, but at any watchable total that leaves each crossing
+     * about two frames long and all anyone sees is a band sliding down.
+     * Fewer, slower passes show the sideways travel, which is the point.
+     * Lower it for a more deliberate sweep.
      */
     renderScan(pixels, progress) {
         this.renderStage(pixels);
 
+        const SCAN_PASSES = 14;
+        const ROWS_PER_PASS = 28 / SCAN_PASSES;
+
         const ctx = this.ctx;
         const cs = this.cellSize;
         const W = this.canvas.width;
-        const rowF = Math.min(28, progress * 28);
-        const row = Math.floor(rowF);
-        const across = rowF - row;
 
-        // everything below the head is still waiting
+        const passF = Math.min(SCAN_PASSES, progress * SCAN_PASSES);
+        const pass = Math.floor(passF);
+        const across = passF - pass;
+
+        const bandTop = pass * ROWS_PER_PASS * cs;
+        const bandHeight = ROWS_PER_PASS * cs;
+
+        // everything the head has not reached yet is still waiting
         ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-        ctx.fillRect(0, (row + across) * cs, W, this.canvas.height);
+        ctx.fillRect(0, bandTop + across * bandHeight, W, this.canvas.height);
 
-        if (row < 28) {
-            ctx.fillStyle = 'rgba(242, 201, 76, 0.16)';
-            ctx.fillRect(0, row * cs, W, cs);
-            ctx.fillStyle = 'rgba(242, 201, 76, 0.85)';
-            ctx.fillRect(across * W - 2, row * cs, 3, cs);
+        if (pass < SCAN_PASSES) {
+            ctx.fillStyle = 'rgba(242, 201, 76, 0.14)';
+            ctx.fillRect(0, bandTop, W, bandHeight);
+
+            // the head, with a tail behind it so the direction is readable
+            const x = across * W;
+            const tail = ctx.createLinearGradient(x - W * 0.22, 0, x, 0);
+            tail.addColorStop(0, 'rgba(242, 201, 76, 0)');
+            tail.addColorStop(1, 'rgba(242, 201, 76, 0.45)');
+            ctx.fillStyle = tail;
+            ctx.fillRect(x - W * 0.22, bandTop, W * 0.22, bandHeight);
+
+            ctx.fillStyle = 'rgba(255, 240, 190, 0.95)';
+            ctx.fillRect(x - 2, bandTop, 4, bandHeight);
         }
     }
 

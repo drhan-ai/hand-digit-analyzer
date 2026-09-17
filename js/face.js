@@ -36,7 +36,7 @@ const SETTINGS = {
     CENTER_MS: 600,
     SMOOTH_MS: 400,
     SETTLE_MS: 600,
-    SCAN_MS: 1000,
+    SCAN_MS: 1400,
     FLOW_MS: 500,
 };
 
