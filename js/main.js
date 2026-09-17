@@ -3,6 +3,16 @@
     const drawingCanvas = new DrawingCanvas(document.getElementById('drawing-canvas'));
     const visualizer = new NetworkVisualizer(document.getElementById('network-canvas'));
 
+    // How long ago someone last drew, cleared, or moved the brush slider.
+    // The idle check at the bottom of animate() compares against this.
+    let lastInteraction = performance.now();
+    function touched() { lastInteraction = performance.now(); }
+
+    // The face a visitor meets first. Tapping it hands the page over to
+    // the demo; the idle check below brings it back.
+    // Timings (including the auto-return delay) are in js/face.js.
+    const landing = new FaceLanding(document.getElementById('face-landing'), touched);
+
     const outputCards = document.getElementById('output-grid').querySelectorAll('.output-card');
     const btnClear = document.getElementById('btn-clear');
     const brushSlider = document.getElementById('brush-size');
@@ -32,21 +42,28 @@
         });
     }
 
-    btnClear.addEventListener('click', () => {
+    function resetAll() {
         drawingCanvas.clear();
         network.reset();
         visualizer.update(network.hidden1Activations, network.hidden2Activations,
                           network.outputActivations);
         resetOutputDisplay();
+    }
+
+    btnClear.addEventListener('click', () => {
+        resetAll();
+        touched();
     });
 
     brushSlider.addEventListener('input', (e) => {
         drawingCanvas.setBrushSize(parseFloat(e.target.value));
+        touched();
     });
 
     function animate() {
         if (drawingCanvas.dirty) {
             drawingCanvas.dirty = false;
+            touched();               // pixels changed, so somebody is drawing
             drawingCanvas.render();
 
             if (!drawingCanvas.isEmpty() && network.loaded) {
@@ -57,6 +74,16 @@
             }
         }
         visualizer.render();
+
+        // AUTO-RETURN TO THE LANDING SCREEN.
+        // To change the delay, edit SETTINGS.IDLE_RETURN_MS in js/face.js
+        // (0 there switches this off). Nothing to change here.
+        if (SETTINGS.IDLE_RETURN_MS > 0 && !landing.isVisible &&
+            performance.now() - lastInteraction > SETTINGS.IDLE_RETURN_MS) {
+            resetAll();              // next visitor should not see the last drawing
+            landing.show();
+        }
+
         requestAnimationFrame(animate);
     }
 

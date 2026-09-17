@@ -31,9 +31,11 @@ separation. It appears only inside the graphic.
 ## Logos
 
 `img/mga-logo.png` — institutional logo, trimmed with the white background
-knocked out. `img/mga-knights.png` — athletics shield. Athletics marks
-normally need separate approval from the Athletics Department; confirm
-before publishing, or delete the `knights-card` block from `index.html`.
+knocked out. It is the only logo the page uses.
+
+The MGA Knights athletics shield was removed. Athletics marks need
+separate approval from the Athletics Department, so the page does not
+carry one.
 
 ## Changing colors
 
