@@ -232,6 +232,33 @@ class DrawingCanvas {
         ctx.restore();
     }
 
+    /**
+     * The grid with a read head sweeping it, row by row and left to right —
+     * how the 784 values reach the network. What has been read is at full
+     * strength; what has not is held back. progress runs 0 to 1.
+     */
+    renderScan(pixels, progress) {
+        this.renderStage(pixels);
+
+        const ctx = this.ctx;
+        const cs = this.cellSize;
+        const W = this.canvas.width;
+        const rowF = Math.min(28, progress * 28);
+        const row = Math.floor(rowF);
+        const across = rowF - row;
+
+        // everything below the head is still waiting
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+        ctx.fillRect(0, (row + across) * cs, W, this.canvas.height);
+
+        if (row < 28) {
+            ctx.fillStyle = 'rgba(242, 201, 76, 0.16)';
+            ctx.fillRect(0, row * cs, W, cs);
+            ctx.fillStyle = 'rgba(242, 201, 76, 0.85)';
+            ctx.fillRect(across * W - 2, row * cs, 3, cs);
+        }
+    }
+
     setBrushSize(size) {
         this.brushSize = size;
     }

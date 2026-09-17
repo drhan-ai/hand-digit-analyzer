@@ -48,6 +48,7 @@ class NetworkVisualizer {
     }
 
     setWeights(network) {
+        this.setFlow();      // nothing is travelling until someone says so
         this.weights = network;
         this.h1Size = network.h1Size || 32;
         this.h2Size = network.h2Size || 32;
@@ -74,6 +75,17 @@ class NetworkVisualizer {
         this.out = out;
     }
 
+    /**
+     * How far the signal has travelled down each set of wires, 0 to 1.
+     * Below 1 the wires are drawn only as far as it has reached and their
+     * dashes march, so a layer is seen arriving rather than appearing.
+     * Both default to 1 — fully arrived — which is every other moment.
+     */
+    setFlow(toHidden2 = 1, toOutput = 1) {
+        this.flow12 = toHidden2;
+        this.flow23 = toOutput;
+    }
+
     render() {
         const ctx = this.ctx;
         const dpr = window.devicePixelRatio || 1;
@@ -93,8 +105,8 @@ class NetworkVisualizer {
 
         const winner = this._winner();
 
-        this._connections(ctx, this.conn12, this.h1, w, pad, y1, y2, this.h1Size, this.h2Size, 5, -1, 0.45);
-        this._connections(ctx, this.conn23, this.h2, w, pad, y2, y3, this.h2Size, 10, 7, winner);
+        this._connections(ctx, this.conn12, this.h1, w, pad, y1, y2, this.h1Size, this.h2Size, 5, -1, 0.45, this.flow12);
+        this._connections(ctx, this.conn23, this.h2, w, pad, y2, y3, this.h2Size, 10, 7, winner, 1, this.flow23);
 
         this._hiddenRow(ctx, this.h1, w, pad, y1, this.h1Size);
         this._hiddenRow(ctx, this.h2, w, pad, y2, this.h2Size);
@@ -126,8 +138,19 @@ class NetworkVisualizer {
      * and fade everything else. That is what makes the picture readable —
      * you can see which neurons voted for the answer.
      */
-    _connections(ctx, list, acts, w, pad, yA, yB, nA, nB, radius, winner, dim = 1) {
+    _connections(ctx, list, acts, w, pad, yA, yB, nA, nB, radius, winner, dim = 1, flow = 1) {
+        // Mid-flight: show the wires only as far down as the signal has got,
+        // and march the dashes so the direction of travel is visible.
+        const travelling = flow < 1;
+        if (travelling) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(0, yA, w, (yB - yA + radius + 8) * flow);
+            ctx.clip();
+        }
+
         ctx.setLineDash([5, 3]);
+        if (travelling) ctx.lineDashOffset = -(performance.now() / 45) % 8;
         for (const c of list) {
             const focused = winner < 0 || c.to === winner;
             const act = acts[c.from] || 0;
@@ -145,7 +168,10 @@ class NetworkVisualizer {
             ctx.bezierCurveTo(xA, (yA + yB) / 2, xB, (yA + yB) / 2, xB, yB - radius);
             ctx.stroke();
         }
+
         ctx.setLineDash([]);
+        ctx.lineDashOffset = 0;
+        if (travelling) ctx.restore();
     }
 
     _hiddenRow(ctx, acts, w, pad, y, n) {

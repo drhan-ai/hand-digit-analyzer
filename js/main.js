@@ -65,6 +65,7 @@
     }
 
     function resetAll() {
+        visualizer.setFlow();        // nothing half-drawn if this interrupts
         drawingCanvas.clear();
         btnCheck.disabled = true;    // nothing left to check
         network.reset();
@@ -99,29 +100,6 @@
     const zerosH1 = new Float32Array(network.hidden1Activations.length);
     const zerosH2 = new Float32Array(network.hidden2Activations.length);
     const zerosOut = new Float32Array(network.outputActivations.length);
-
-    // Working copies a layer is revealed through, so the real activations
-    // are never touched.
-    const risingH1 = new Float32Array(zerosH1.length);
-    const risingH2 = new Float32Array(zerosH2.length);
-    const risingOut = new Float32Array(zerosOut.length);
-
-    /**
-     * Fill `into` with `from`, brought up from nothing left to right: at any
-     * moment some neurons are at full strength, some are on their way, and
-     * the ones further right have not started. A layer arrives as a wave
-     * rather than all at once. SPREAD is how much of the step is spent
-     * starting neurons — the rest is how long each one takes to rise.
-     */
-    const SPREAD = 0.55;
-    function rise(from, into, t) {
-        const n = from.length;
-        for (let i = 0; i < n; i++) {
-            const begins = (i / n) * SPREAD;
-            const p = Math.min(1, Math.max(0, (t - begins) / (1 - SPREAD)));
-            into[i] = from[i] * p;
-        }
-    }
 
     function setBusy(on) {
         document.body.classList.toggle('is-busy', on);
@@ -204,6 +182,7 @@
         // the answer must not be sitting there before the network gets to it
         resetOutputDisplay();
         visualizer.update(zerosH1, zerosH2, zerosOut);
+        visualizer.setFlow(0, 0);      // no wires drawn until the scan is done
 
         await settleIntoCard();
 
@@ -217,28 +196,25 @@
             await scrollHasStopped();
         }
 
-        await over(SETTINGS.LAYER_MS, (t) => {
-            rise(network.hidden1Activations, risingH1, t);
-            visualizer.update(risingH1, zerosH2, zerosOut);
+        // The prepared grid is read, row by row: 784 numbers handed over.
+        await over(SETTINGS.SCAN_MS, (t) => {
+            drawingCanvas.renderScan(stageBlurred, t);
         });
+        drawingCanvas.renderStage(stageBlurred);
 
-        await over(SETTINGS.LAYER_MS, (t) => {
-            rise(network.hidden2Activations, risingH2, t);
-            visualizer.update(network.hidden1Activations, risingH2, zerosOut);
-        });
+        // Then the signal travels. Each layer lights when the wires reach it,
+        // which is the order the arithmetic actually happens in.
+        visualizer.update(network.hidden1Activations, zerosH2, zerosOut);
+        await over(SETTINGS.FLOW_MS, (t) => visualizer.setFlow(t, 0));
 
-        // the confidences climb with the output neurons rather than appearing
-        await over(SETTINGS.LAYER_MS, (t) => {
-            rise(network.outputActivations, risingOut, t);
-            visualizer.update(network.hidden1Activations, network.hidden2Activations,
-                              risingOut);
-            updateOutputDisplay(risingOut);
-        });
+        visualizer.update(network.hidden1Activations, network.hidden2Activations,
+                          zerosOut);
+        await over(SETTINGS.FLOW_MS, (t) => visualizer.setFlow(1, t));
 
-        // land on the exact numbers, not whatever the last frame worked out
         visualizer.update(network.hidden1Activations, network.hidden2Activations,
                           network.outputActivations);
         updateOutputDisplay(network.outputActivations);
+        visualizer.setFlow();          // arrived; back to drawing in full
 
         setBusy(false);
         touched();

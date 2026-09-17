@@ -22,8 +22,10 @@
    CENTER_MS       The digit slides to the middle of the grid.
    SMOOTH_MS       Its edges soften.
    SETTLE_MS       The big canvas shrinks back into its card.
-   LAYER_MS        Each layer of the network lights up, one after the
-                   next, so three of these pass before the answer.
+   SCAN_MS         The prepared grid is read row by row, the way its 784
+                   values are handed over.
+   FLOW_MS         The signal travels from one layer to the next along the
+                   wires. Two of these pass before the answer.
    =================================================================== */
 
 const SETTINGS = {
@@ -34,7 +36,8 @@ const SETTINGS = {
     CENTER_MS: 600,
     SMOOTH_MS: 400,
     SETTLE_MS: 600,
-    LAYER_MS: 400,
+    SCAN_MS: 1000,
+    FLOW_MS: 500,
 };
 
 
