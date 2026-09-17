@@ -47,7 +47,7 @@
    whichever number this is, so a comparison shows only the step itself.
    =================================================================== */
 
-const VERSION = 4;
+const VERSION = 3;
 
 const FEATURES = {
     landing:     VERSION >= 2,
